@@ -1,5 +1,20 @@
 const WEEKDAY_LABELS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 
+const MONTH_LABELS = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
 /** Parses a "YYYY-MM-DD" string as a local date, avoiding UTC-parsing off-by-one bugs. */
 function parseISODate(iso: string): Date {
   const [year, month, day] = iso.split("-").map(Number);
@@ -40,6 +55,23 @@ export function dayLabel(date: Date): string {
 
 export function dayNumber(date: Date): number {
   return date.getDate();
+}
+
+/** Full month name, capitalized (e.g. "Agosto"). */
+function monthLabel(date: Date): string {
+  const label = MONTH_LABELS[date.getMonth()];
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/**
+ * Label for the month(s) a weekend spans, e.g. "Agosto" or, when the
+ * weekend crosses a month boundary, "Agosto/Setembro".
+ */
+export function weekendMonthLabel({ friday, sunday }: WeekendDates): string {
+  if (friday.getMonth() === sunday.getMonth()) {
+    return monthLabel(friday);
+  }
+  return `${monthLabel(friday)}/${monthLabel(sunday)}`;
 }
 
 export { toISODate, parseISODate };

@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { weekendFromFriday, dayLabel, dayNumber } from "../dates";
+  import {
+    weekendFromFriday,
+    dayLabel,
+    dayNumber,
+    weekendMonthLabel,
+  } from "../dates";
   import { castVote, type WeekendWithVotes, type ArrivalType } from "../votes";
 
   interface Props {
@@ -37,6 +42,7 @@
 </script>
 
 <article class="card" style={cardStyle}>
+  <p class="month">{weekendMonthLabel(dates)}</p>
   <header class="dates">
     <div class="date-col">
       <span class="weekday">{dayLabel(dates.friday)}</span>
@@ -69,7 +75,7 @@
       class:selected={myVote === "friday"}
       onclick={() => vote("friday")}
     >
-      ✅ Consigo chegar na sexta
+      ✅ Consigo chegar na sexta à tarde/noite
     </button>
     <button
       type="button"
@@ -91,6 +97,15 @@
     flex-direction: column;
     gap: 0.75rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  .month {
+    margin: 0;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--color-muted-strong);
   }
 
   .dates {
