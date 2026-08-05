@@ -50,7 +50,7 @@
   }
 </script>
 
-<article class="card" style={cardStyle}>
+<article class="card" id="weekend-{weekend.id}" style={cardStyle}>
   <p class="month">{weekendMonthLabel(dates)}</p>
 
   <div class="info-wrap">
@@ -144,6 +144,14 @@
     flex-direction: column;
     gap: 0.75rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    scroll-margin-top: 1rem;
+    transition: box-shadow 0.4s ease;
+  }
+
+  .card:global(.flash) {
+    box-shadow:
+      0 0 0 2px var(--color-accent),
+      0 1px 2px rgba(0, 0, 0, 0.06);
   }
 
   .month {

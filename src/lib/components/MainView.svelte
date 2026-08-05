@@ -1,7 +1,8 @@
 <script lang="ts">
   import { db } from "../db";
   import WeekendCard from "./WeekendCard.svelte";
-  import type { WeekendWithVotes } from "../votes";
+  import MonthOverview from "./MonthOverview.svelte";
+  import { heatRatio, type WeekendWithVotes } from "../votes";
 
   interface Props {
     participantId: string;
@@ -23,14 +24,6 @@
   const weekends = $derived(
     (query.data?.weekends ?? []) as WeekendWithVotes[],
   );
-
-  const maxTurnout = $derived(
-    Math.max(1, ...weekends.map((w) => w.votes.length)),
-  );
-
-  function heatRatio(weekend: WeekendWithVotes): number {
-    return weekend.votes.length / maxTurnout;
-  }
 </script>
 
 <div class="page">
@@ -54,9 +47,14 @@
       algumas datas.
     </p>
   {:else}
+    <MonthOverview {weekends} />
     <div class="grid">
       {#each weekends as weekend (weekend.id)}
-        <WeekendCard {weekend} {participantId} heatRatio={heatRatio(weekend)} />
+        <WeekendCard
+          {weekend}
+          {participantId}
+          heatRatio={heatRatio(weekend, weekends)}
+        />
       {/each}
     </div>
   {/if}

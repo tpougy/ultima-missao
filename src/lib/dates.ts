@@ -1,4 +1,5 @@
 const WEEKDAY_LABELS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+export const WEEKDAY_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const MONTH_LABELS = [
   "janeiro",
@@ -74,4 +75,12 @@ export function weekendMonthLabel({ friday, sunday }: WeekendDates): string {
   return `${monthLabel(friday)}/${monthLabel(sunday)}`;
 }
 
-export { toISODate, parseISODate };
+export function sameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+export { toISODate, parseISODate, addDays, monthLabel };

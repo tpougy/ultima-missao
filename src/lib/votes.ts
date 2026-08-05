@@ -66,3 +66,15 @@ export function resetWeekendVotes(weekend: WeekendWithVotes): void {
   if (weekend.votes.length === 0) return;
   db.transact(weekend.votes.map((v) => db.tx.votes[v.id].delete()));
 }
+
+/**
+ * How a weekend's turnout compares to the busiest one in the list (0..1).
+ * Shared by the cards and the month overview so both agree on "how green".
+ */
+export function heatRatio(
+  weekend: WeekendWithVotes,
+  allWeekends: WeekendWithVotes[],
+): number {
+  const maxTurnout = Math.max(1, ...allWeekends.map((w) => w.votes.length));
+  return weekend.votes.length / maxTurnout;
+}
