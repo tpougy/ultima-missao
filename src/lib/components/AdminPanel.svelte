@@ -1,7 +1,7 @@
 <script lang="ts">
   import { db, id } from "../db";
   import { toISODate } from "../dates";
-  import type { WeekendWithVotes } from "../votes";
+  import { resetWeekendVotes, type WeekendWithVotes } from "../votes";
 
   interface Props {
     onClose: () => void;
@@ -11,17 +11,13 @@
 
   const query = db.useQuery({
     weekends: {
-      votes: {},
-      $: { order: { order: "asc" } },
+      votes: { participant: {} },
+      $: { order: { fridayDate: "asc" } },
     },
   });
 
   const weekends = $derived(
     (query.data?.weekends ?? []) as WeekendWithVotes[],
-  );
-
-  const nextOrder = $derived(
-    weekends.length === 0 ? 0 : Math.max(...weekends.map((w) => w.order)) + 1,
   );
 
   let newFridayDate = $state(defaultNextFriday());
@@ -39,10 +35,7 @@
     event.preventDefault();
     if (!newFridayDate) return;
     db.transact(
-      db.tx.weekends[id()].update({
-        fridayDate: newFridayDate,
-        order: nextOrder,
-      }),
+      db.tx.weekends[id()].update({ fridayDate: newFridayDate }),
     );
     newFridayDate = defaultNextFriday();
   }
@@ -52,17 +45,17 @@
     db.transact(db.tx.weekends[weekend.id].update({ fridayDate: value }));
   }
 
-  function updateOrder(weekend: WeekendWithVotes, value: string) {
-    const order = Number(value);
-    if (Number.isNaN(order)) return;
-    db.transact(db.tx.weekends[weekend.id].update({ order }));
-  }
-
   function removeWeekend(weekend: WeekendWithVotes) {
     if (!confirm("Remover este final de semana e todos os votos dele?")) {
       return;
     }
     db.transact(db.tx.weekends[weekend.id].delete());
+  }
+
+  function handleResetVotes(weekend: WeekendWithVotes) {
+    if (weekend.votes.length === 0) return;
+    if (!confirm("Resetar todos os votos deste final de semana?")) return;
+    resetWeekendVotes(weekend);
   }
 </script>
 
@@ -93,12 +86,6 @@
               onchange={(e) =>
                 updateFridayDate(weekend, e.currentTarget.value)}
             />
-            <input
-              type="number"
-              class="order-input"
-              value={weekend.order}
-              onchange={(e) => updateOrder(weekend, e.currentTarget.value)}
-            />
             <span class="vote-count">{weekend.votes.length} votos</span>
             <button
               type="button"
@@ -110,14 +97,20 @@
             <p class="attendees">
               Sexta: {weekend.votes
                 .filter((v) => v.arrivalType === "friday")
-                .map((v) => v.participantName)
+                .map((v) => v.participant?.name)
                 .join(", ") || "—"}
               <br />
               Sábado: {weekend.votes
                 .filter((v) => v.arrivalType === "saturday")
-                .map((v) => v.participantName)
+                .map((v) => v.participant?.name)
                 .join(", ") || "—"}
             </p>
+            <button
+              type="button"
+              class="reset-btn"
+              onclick={() => handleResetVotes(weekend)}
+              >Resetar votos</button
+            >
           {/if}
         </li>
       {/each}
@@ -197,10 +190,6 @@
     min-width: 0;
   }
 
-  .order-input {
-    width: 3.5rem;
-  }
-
   .vote-count {
     font-size: 0.75rem;
     color: var(--color-muted);
@@ -217,5 +206,14 @@
     color: var(--color-danger);
     font-size: 0.8rem;
     padding: 0.25rem 0.4rem;
+  }
+
+  .reset-btn {
+    align-self: flex-start;
+    background: none;
+    color: var(--color-muted-strong);
+    font-size: 0.75rem;
+    padding: 0.2rem 0;
+    text-decoration: underline;
   }
 </style>

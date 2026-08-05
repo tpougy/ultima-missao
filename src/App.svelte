@@ -1,39 +1,55 @@
 <script lang="ts">
   import PasswordGate from "./lib/components/PasswordGate.svelte";
-  import NameGate from "./lib/components/NameGate.svelte";
+  import IdentityGate from "./lib/components/IdentityGate.svelte";
   import MainView from "./lib/components/MainView.svelte";
   import AdminPanel from "./lib/components/AdminPanel.svelte";
+  import { db } from "./lib/db";
   import {
-    getParticipant,
-    saveParticipantName,
-    forgetParticipantName,
-  } from "./lib/participant";
+    getStoredParticipantId,
+    clearStoredParticipantId,
+    type Participant,
+  } from "./lib/participants";
   import {
     isAppUnlocked,
     tryUnlockApp,
     isAdminUnlocked,
     tryUnlockAdmin,
   } from "./lib/gate";
-  import { syncParticipantNameAcrossVotes } from "./lib/votes";
 
   let appUnlocked = $state(isAppUnlocked());
-  let participant = $state(getParticipant());
+  let participant = $state<Participant | null>(null);
+  let checkingStoredIdentity = $state(true);
   let view = $state<"main" | "admin">("main");
   let adminUnlocked = $state(isAdminUnlocked());
 
-  function handleNameSubmit(name: string) {
-    const wasNamed = !!participant?.name;
-    const previousId = participant?.id;
-    participant = saveParticipantName(name);
+  $effect(() => {
+    if (!appUnlocked) return;
 
-    if (wasNamed && previousId === participant.id) {
-      syncParticipantNameAcrossVotes(participant.id, name);
+    const storedId = getStoredParticipantId();
+    if (!storedId) {
+      checkingStoredIdentity = false;
+      return;
     }
+
+    db.queryOnce({ participants: { $: { where: { id: storedId } } } }).then(
+      ({ data }) => {
+        if (data.participants.length > 0) {
+          participant = data.participants[0] as Participant;
+        } else {
+          clearStoredParticipantId();
+        }
+        checkingStoredIdentity = false;
+      },
+    );
+  });
+
+  function handleIdentified(p: Participant) {
+    participant = p;
   }
 
-  function handleChangeName() {
-    forgetParticipantName();
-    participant = getParticipant();
+  function handleChangeUser() {
+    clearStoredParticipantId();
+    participant = null;
   }
 </script>
 
@@ -44,8 +60,10 @@
     check={tryUnlockApp}
     onUnlocked={() => (appUnlocked = true)}
   />
-{:else if !participant || participant.name.length === 0}
-  <NameGate onSubmit={handleNameSubmit} />
+{:else if checkingStoredIdentity}
+  <p class="loading">Carregando...</p>
+{:else if !participant}
+  <IdentityGate onIdentified={handleIdentified} />
 {:else if view === "admin"}
   {#if !adminUnlocked}
     <PasswordGate
@@ -62,7 +80,17 @@
   <MainView
     participantId={participant.id}
     participantName={participant.name}
-    onChangeName={handleChangeName}
+    onChangeName={handleChangeUser}
     onOpenAdmin={() => (view = "admin")}
   />
 {/if}
+
+<style>
+  .loading {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+  }
+</style>

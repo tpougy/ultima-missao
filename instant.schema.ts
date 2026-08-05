@@ -21,15 +21,18 @@ const _schema = i.schema({
     }),
     weekends: i.entity({
       // ISO date (YYYY-MM-DD) for the Friday; Saturday/Sunday are derived in the UI.
+      // Cards are always listed in chronological order by this field.
       fridayDate: i.string().indexed(),
-      order: i.number().indexed(),
     }),
     votes: i.entity({
-      // Generated client-side per browser/device, stored in localStorage. Not a real auth id.
-      participantId: i.string().indexed(),
-      participantName: i.string(),
       // "friday" (whole weekend) or "saturday" (arrives Saturday only)
       arrivalType: i.string(),
+    }),
+    participants: i.entity({
+      // The person's chosen display name doubles as their cross-device
+      // identity: unique so the same name can be picked up on another
+      // device to control the same votes (see participants.ts).
+      name: i.string().unique().indexed(),
     }),
   },
   links: {
@@ -68,6 +71,19 @@ const _schema = i.schema({
       },
       reverse: {
         on: "weekends",
+        has: "many",
+        label: "votes",
+      },
+    },
+    participantVotes: {
+      forward: {
+        on: "votes",
+        has: "one",
+        label: "participant",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "participants",
         has: "many",
         label: "votes",
       },

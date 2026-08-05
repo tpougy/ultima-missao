@@ -15,8 +15,8 @@
 
   const query = db.useQuery({
     weekends: {
-      votes: {},
-      $: { order: { order: "asc" } },
+      votes: { participant: {} },
+      $: { order: { fridayDate: "asc" } },
     },
   });
 
@@ -38,7 +38,7 @@
     <div class="who">
       Olá, <strong>{participantName}</strong>
       <button type="button" class="link" onclick={onChangeName}
-        >Trocar nome</button
+        >Trocar usuário</button
       >
     </div>
     <button type="button" class="link" onclick={onOpenAdmin}>Admin</button>
@@ -56,12 +56,7 @@
   {:else}
     <div class="grid">
       {#each weekends as weekend (weekend.id)}
-        <WeekendCard
-          {weekend}
-          {participantId}
-          {participantName}
-          heatRatio={heatRatio(weekend)}
-        />
+        <WeekendCard {weekend} {participantId} heatRatio={heatRatio(weekend)} />
       {/each}
     </div>
   {/if}
