@@ -4,6 +4,7 @@
     addDays,
     sameDay,
     monthLabel,
+    mondayIndex,
     WEEKDAY_INITIALS,
   } from "../dates";
   import { heatRatio, type WeekendWithVotes } from "../votes";
@@ -66,7 +67,7 @@
       .map((key) => {
         const [year, month] = key.split("-").map(Number);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const leadingEmpty = new Date(year, month, 1).getDay();
+        const leadingEmpty = mondayIndex(new Date(year, month, 1));
         const days: DayCell[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(year, month, day);

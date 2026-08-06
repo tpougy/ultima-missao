@@ -1,5 +1,6 @@
 const WEEKDAY_LABELS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
-export const WEEKDAY_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"];
+// Monday-first, to match the month grid (weeks run Mon..Sun there).
+export const WEEKDAY_INITIALS = ["S", "T", "Q", "Q", "S", "S", "D"];
 
 const MONTH_LABELS = [
   "janeiro",
@@ -73,6 +74,11 @@ export function weekendMonthLabel({ friday, sunday }: WeekendDates): string {
     return monthLabel(friday);
   }
   return `${monthLabel(friday)}/${monthLabel(sunday)}`;
+}
+
+/** 0=Monday..6=Sunday, unlike Date#getDay's 0=Sunday..6=Saturday. */
+export function mondayIndex(date: Date): number {
+  return (date.getDay() + 6) % 7;
 }
 
 export function sameDay(a: Date, b: Date): boolean {
