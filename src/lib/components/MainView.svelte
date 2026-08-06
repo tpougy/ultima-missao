@@ -37,7 +37,14 @@
     <button type="button" class="link" onclick={onOpenAdmin}>Admin</button>
   </header>
 
-  <h1 class="title">Qual final de semana funciona pra você?</h1>
+  <div class="hero">
+    <p class="hero-eyebrow">Última Missão: Leo</p>
+    <p class="hero-subtitle">
+      Avante, recrutas! A missão é simples: encontrar a data perfeita pra
+      essa despedida entrar pra história.
+    </p>
+    <h1 class="title">Qual final de semana funciona pra você?</h1>
+  </div>
 
   {#if query.isLoading}
     <p class="empty">Carregando...</p>
@@ -84,10 +91,34 @@
     gap: 0.4rem;
   }
 
+  .hero {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .hero-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-muted-strong);
+    line-height: 1.5;
+  }
+
   .title {
     font-size: 1.1rem;
     font-weight: 600;
-    margin: 0;
+    margin: 0.5rem 0 0;
     text-align: center;
   }
 
