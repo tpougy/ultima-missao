@@ -2,6 +2,14 @@
   import { db, id } from "../db";
   import { toISODate } from "../dates";
   import { resetWeekendVotes, type WeekendWithVotes } from "../votes";
+  import type { InstaQLEntity } from "@instantdb/svelte";
+  import type { AppSchema } from "../../../instant.schema";
+
+  type ParticipantWithVotes = InstaQLEntity<
+    AppSchema,
+    "participants",
+    { votes: object }
+  >;
 
   interface Props {
     onClose: () => void;
@@ -14,10 +22,19 @@
       votes: { participant: {} },
       $: { order: { fridayDate: "asc" } },
     },
+    participants: {
+      votes: {},
+    },
   });
 
   const weekends = $derived(
     (query.data?.weekends ?? []) as WeekendWithVotes[],
+  );
+
+  const participants = $derived(
+    ((query.data?.participants ?? []) as ParticipantWithVotes[])
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
   );
 
   let newFridayDate = $state(defaultNextFriday());
@@ -56,6 +73,16 @@
     if (weekend.votes.length === 0) return;
     if (!confirm("Resetar todos os votos deste final de semana?")) return;
     resetWeekendVotes(weekend);
+  }
+
+  function removeParticipant(participant: ParticipantWithVotes) {
+    const warning =
+      participant.votes.length > 0
+        ? `Remover "${participant.name}" e ${participant.votes.length} voto(s) dele(a)?`
+        : `Remover "${participant.name}"?`;
+    if (!confirm(warning)) return;
+    // Cascade delete on the participant<->votes link takes care of their votes.
+    db.transact(db.tx.participants[participant.id].delete());
   }
 </script>
 
@@ -116,6 +143,35 @@
       {/each}
     </ul>
   {/if}
+
+  <section class="users-section">
+    <h2>Usuários</h2>
+    {#if participants.length === 0}
+      <p class="empty">Nenhum usuário cadastrado ainda.</p>
+    {:else}
+      <ul class="list">
+        {#each participants as participant (participant.id)}
+          <li class="row-group">
+            <div class="row">
+              <span class="participant-name">{participant.name}</span>
+              <span class="vote-count"
+                >{participant.votes.length} voto{participant.votes.length ===
+                1
+                  ? ""
+                  : "s"}</span
+              >
+              <button
+                type="button"
+                class="danger"
+                onclick={() => removeParticipant(participant)}
+                >Remover</button
+              >
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
 </div>
 
 <style>
@@ -137,6 +193,23 @@
   .topbar h1 {
     font-size: 1.1rem;
     margin: 0;
+  }
+
+  .users-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .users-section h2 {
+    font-size: 0.9rem;
+    margin: 0;
+    color: var(--color-muted-strong);
+  }
+
+  .participant-name {
+    flex: 1;
+    font-size: 0.9rem;
   }
 
   .add-form {
