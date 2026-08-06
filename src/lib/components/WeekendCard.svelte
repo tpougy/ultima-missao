@@ -11,6 +11,9 @@
     type WeekendWithVotes,
     type ArrivalType,
   } from "../votes";
+  import Info from "lucide-svelte/icons/info";
+  import CheckCircle2 from "lucide-svelte/icons/check-circle-2";
+  import CircleDashed from "lucide-svelte/icons/circle-dashed";
 
   interface Props {
     weekend: WeekendWithVotes;
@@ -60,7 +63,7 @@
       aria-label="Ver quem votou"
       onclick={() => (infoOpen = !infoOpen)}
     >
-      ℹ️
+      <Info size={16} />
     </button>
     {#if infoOpen}
       <button
@@ -116,7 +119,8 @@
       class:selected={myVote === "friday"}
       onclick={() => vote("friday")}
     >
-      ✅ Consigo chegar na sexta à tarde/noite
+      <CheckCircle2 size={18} />
+      Consigo chegar na sexta à tarde/noite
     </button>
     <button
       type="button"
@@ -124,7 +128,8 @@
       class:selected={myVote === "saturday"}
       onclick={() => vote("saturday")}
     >
-      🟡 Só consigo chegar no sábado
+      <CircleDashed size={18} />
+      Só consigo chegar no sábado
     </button>
     {#if myVote}
       <button type="button" class="clear-btn" onclick={clearMyVote}
@@ -171,9 +176,12 @@
 
   .info-btn {
     background: none;
-    padding: 0.15rem 0.3rem;
-    font-size: 0.95rem;
+    color: var(--color-muted-strong);
+    padding: 0.3rem;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .info-backdrop {
@@ -275,6 +283,13 @@
     font-size: 0.9rem;
     padding: 0.6rem 0.75rem;
     text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .vote-btn :global(svg) {
+    flex-shrink: 0;
   }
 
   .vote-btn.selected {

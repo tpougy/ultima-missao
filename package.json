@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@instantdb/admin": "^1.0.60",
-    "@instantdb/svelte": "^1.0.60"
+    "@instantdb/svelte": "^1.0.60",
+    "lucide-svelte": "^1.0.1"
   }
 }
