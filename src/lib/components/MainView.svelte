@@ -41,7 +41,7 @@
     <p class="hero-eyebrow">Última Missão: Leo</p>
     <p class="hero-subtitle">
       Avante, recrutas! Antes da missão, tem a pré-missão: bater o martelo na
-      data certa. O resto — a despedida em si — a gente resolve lá.
+      data certa.
     </p>
     <h1 class="title">Qual final de semana funciona pra você?</h1>
   </div>
