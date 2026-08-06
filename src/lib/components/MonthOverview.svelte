@@ -25,6 +25,8 @@
 
   interface MonthBlock {
     key: string;
+    year: number;
+    month: number;
     label: string;
     leadingEmpty: number;
     days: DayCell[];
@@ -77,12 +79,14 @@
         }
         return {
           key,
+          year,
+          month,
           label: `${monthLabel(new Date(year, month, 1))} ${year}`,
           leadingEmpty,
           days,
         };
       })
-      .sort((a, b) => a.key.localeCompare(b.key));
+      .sort((a, b) => a.year - b.year || a.month - b.month);
   });
 
   function heatBackground(ratio: number): string {
