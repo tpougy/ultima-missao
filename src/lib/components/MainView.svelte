@@ -101,9 +101,9 @@
 
   .hero-eyebrow {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-accent);
   }
