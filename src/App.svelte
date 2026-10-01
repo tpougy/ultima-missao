@@ -3,6 +3,10 @@
   import IdentityGate from "./lib/components/IdentityGate.svelte";
   import MainView from "./lib/components/MainView.svelte";
   import AdminPanel from "./lib/components/AdminPanel.svelte";
+  import NavBar from "./lib/components/NavBar.svelte";
+  import MenuView from "./lib/components/MenuView.svelte";
+  import MenuAdmin from "./lib/components/MenuAdmin.svelte";
+  import { router, navigate } from "./lib/router.svelte";
   import { db } from "./lib/db";
   import {
     getStoredParticipantId,
@@ -19,7 +23,6 @@
   let appUnlocked = $state(isAppUnlocked());
   let participant = $state<Participant | null>(null);
   let checkingStoredIdentity = $state(true);
-  let view = $state<"main" | "admin">("main");
   let adminUnlocked = $state(isAdminUnlocked());
 
   $effect(() => {
@@ -64,25 +67,27 @@
   <p class="loading">Carregando...</p>
 {:else if !participant}
   <IdentityGate onIdentified={handleIdentified} />
-{:else if view === "admin"}
-  {#if !adminUnlocked}
-    <PasswordGate
-      title="Área do admin"
-      subtitle="Digite a senha de administrador"
-      check={tryUnlockAdmin}
-      onUnlocked={() => (adminUnlocked = true)}
-      onCancel={() => (view = "main")}
-    />
-  {:else}
-    <AdminPanel onClose={() => (view = "main")} />
-  {/if}
-{:else}
-  <MainView
-    participantId={participant.id}
-    participantName={participant.name}
-    onChangeName={handleChangeUser}
-    onOpenAdmin={() => (view = "admin")}
+{:else if router.admin && !adminUnlocked}
+  <PasswordGate
+    title="Área do admin"
+    subtitle="Digite a senha de administrador"
+    check={tryUnlockAdmin}
+    onUnlocked={() => (adminUnlocked = true)}
+    onCancel={() => navigate(router.section)}
   />
+{:else}
+  <NavBar participantName={participant.name} onChangeName={handleChangeUser} />
+  {#if router.section === "data"}
+    {#if router.admin}
+      <AdminPanel onClose={() => navigate("data")} />
+    {:else}
+      <MainView participantId={participant.id} />
+    {/if}
+  {:else if router.admin}
+    <MenuAdmin onClose={() => navigate("cardapio")} />
+  {:else}
+    <MenuView participantId={participant.id} />
+  {/if}
 {/if}
 
 <style>

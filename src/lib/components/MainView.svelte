@@ -6,13 +6,9 @@
 
   interface Props {
     participantId: string;
-    participantName: string;
-    onChangeName: () => void;
-    onOpenAdmin: () => void;
   }
 
-  let { participantId, participantName, onChangeName, onOpenAdmin }: Props =
-    $props();
+  let { participantId }: Props = $props();
 
   const query = db.useQuery({
     weekends: {
@@ -27,16 +23,6 @@
 </script>
 
 <div class="page">
-  <header class="topbar">
-    <div class="who">
-      Olá, <strong>{participantName}</strong>
-      <button type="button" class="link" onclick={onChangeName}
-        >Trocar usuário</button
-      >
-    </div>
-    <button type="button" class="link" onclick={onOpenAdmin}>Admin</button>
-  </header>
-
   <div class="hero">
     <p class="hero-eyebrow">Última Missão: Leo</p>
     <p class="hero-subtitle">
@@ -77,22 +63,7 @@
     gap: 1.25rem;
   }
 
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-    color: var(--color-muted-strong);
-  }
-
-  .who {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
   .hero {
-    margin-top: 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
