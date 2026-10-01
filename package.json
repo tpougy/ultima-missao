@@ -8,8 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "instant:pull": "instant-cli pull all --yes",
-    "instant:push": "instant-cli push all --yes"
+    "instant:pull": "bunx --bun instant-cli@latest pull all --yes",
+    "instant:push": "bunx --bun instant-cli@latest push all --yes"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
