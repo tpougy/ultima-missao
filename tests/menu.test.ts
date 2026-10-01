@@ -305,6 +305,15 @@ describe("parsePrice", () => {
     expect(parsePrice("1.234,56")).toBe(1234.56);
   });
 
+  test("reads dot-grouped thousands without a comma as thousands", () => {
+    expect(parsePrice("1.500")).toBe(1500);
+    expect(parsePrice("12.000")).toBe(12000);
+    expect(parsePrice("1.234.567")).toBe(1234567);
+    // Not a thousands group: still a decimal point.
+    expect(parsePrice("1.50")).toBe(1.5);
+    expect(parsePrice("1.5000")).toBe(1.5);
+  });
+
   test("strips a leading R$", () => {
     expect(parsePrice("R$ 80,00")).toBe(80);
   });

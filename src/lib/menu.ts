@@ -197,6 +197,9 @@ export function parsePrice(raw: string): number | null {
   if (text.includes(",")) {
     // Brazilian format: dots group thousands, the comma is the decimal mark.
     text = text.replace(/\./g, "").replace(",", ".");
+  } else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
+    // "1.500" means one thousand five hundred here, not 1,5.
+    text = text.replace(/\./g, "");
   }
   if (!/^\d+(\.\d+)?$/.test(text)) return null;
   return Math.round(Number(text) * 100) / 100;
