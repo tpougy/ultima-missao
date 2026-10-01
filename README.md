@@ -1,10 +1,28 @@
 # Operação Última Missão — Scheduler
 
-App 100% client-side para o grupo escolher o melhor final de semana para a
-viagem. Sem backend próprio: [InstantDB](https://instantdb.com) cuida da
+App 100% client-side para o grupo organizar a viagem: votar no cardápio e
+escolher o melhor final de semana. Sem backend próprio: [InstantDB](https://instantdb.com) cuida da
 persistência e da sincronização em tempo real entre todo mundo.
 
 Stack: Svelte 5 (runes) + Vite + TypeScript + Bun + InstantDB.
+
+## Páginas
+
+Rotas via hash (funciona em hospedagem estática sem rewrites):
+
+- `#/cardapio` (default) — votação do cardápio. Na primeira visita a pessoa
+  escolhe se participa da votação. Um item entra no cardápio quando pelo
+  menos 50% dos votantes votam nele; o topo mostra custo por pessoa (total ÷
+  pagantes) e o total.
+- `#/cardapio/admin` — pagantes, período da viagem, sessões (por dia ou no
+  card "Geral") e itens.
+- `#/data` / `#/data/admin` — votação do final de semana.
+
+As regras do cardápio ficam em `src/lib/menu.ts` (funções puras) e têm testes:
+
+```bash
+bun test tests/
+```
 
 ## Rodando localmente
 
@@ -21,8 +39,7 @@ Veja `.env.example`. Copie para `.env` e preencha:
   cliente).
 - `VITE_APP_PASSWORD` — senha de entrada do app (só evita bots/curiosos, não
   é segurança real).
-- `VITE_ADMIN_PASSWORD` — senha da área de admin (cria/edita/remove finais de
-  semana).
+- `VITE_ADMIN_PASSWORD` — senha das áreas de admin (cardápio e datas).
 - `INSTANT_APP_ADMIN_TOKEN` — usado só pelo `instant-cli` (schema/perms), não
   entra no bundle do cliente.
 
