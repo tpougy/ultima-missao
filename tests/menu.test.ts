@@ -4,6 +4,8 @@ import {
   formatBRL,
   isInMenu,
   nextOrder,
+  parsePayingCount,
+  parsePrice,
   perPerson,
   reorder,
   sortByOrder,
@@ -289,5 +291,51 @@ describe("perPerson / formatBRL", () => {
 
   test("formats as Brazilian reais", () => {
     expect(formatBRL(1234.5).replace(/\s/g, " ")).toBe("R$ 1.234,50");
+  });
+});
+
+describe("parsePrice", () => {
+  test("accepts dot or comma decimals", () => {
+    expect(parsePrice("12.5")).toBe(12.5);
+    expect(parsePrice("12,50")).toBe(12.5);
+    expect(parsePrice(" 100 ")).toBe(100);
+  });
+
+  test("accepts Brazilian thousands separators", () => {
+    expect(parsePrice("1.234,56")).toBe(1234.56);
+  });
+
+  test("strips a leading R$", () => {
+    expect(parsePrice("R$ 80,00")).toBe(80);
+  });
+
+  test("zero is allowed", () => {
+    expect(parsePrice("0")).toBe(0);
+  });
+
+  test("rejects empty, non-numeric and negative values", () => {
+    expect(parsePrice("")).toBeNull();
+    expect(parsePrice("   ")).toBeNull();
+    expect(parsePrice("abc")).toBeNull();
+    expect(parsePrice("-5")).toBeNull();
+    expect(parsePrice("12,3,4")).toBeNull();
+  });
+
+  test("rounds to cents", () => {
+    expect(parsePrice("10,006")).toBe(10.01);
+  });
+});
+
+describe("parsePayingCount", () => {
+  test("accepts non-negative integers", () => {
+    expect(parsePayingCount("10")).toBe(10);
+    expect(parsePayingCount("0")).toBe(0);
+  });
+
+  test("rejects empty, fractional and negative values", () => {
+    expect(parsePayingCount("")).toBeNull();
+    expect(parsePayingCount("2.5")).toBeNull();
+    expect(parsePayingCount("-1")).toBeNull();
+    expect(parsePayingCount("x")).toBeNull();
   });
 });

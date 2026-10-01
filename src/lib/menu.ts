@@ -185,3 +185,25 @@ const BRL = new Intl.NumberFormat("pt-BR", {
 export function formatBRL(value: number): string {
   return BRL.format(value);
 }
+
+/**
+ * Parses a price typed in the admin ("80", "12,50", "1.234,56", "R$ 80").
+ * Returns null for anything that isn't a non-negative amount, so the input
+ * can be reverted instead of saving NaN or a negative cost.
+ */
+export function parsePrice(raw: string): number | null {
+  let text = raw.trim().replace(/^R\$\s*/, "");
+  if (text === "") return null;
+  if (text.includes(",")) {
+    // Brazilian format: dots group thousands, the comma is the decimal mark.
+    text = text.replace(/\./g, "").replace(",", ".");
+  }
+  if (!/^\d+(\.\d+)?$/.test(text)) return null;
+  return Math.round(Number(text) * 100) / 100;
+}
+
+export function parsePayingCount(raw: string): number | null {
+  const text = raw.trim();
+  if (!/^\d+$/.test(text)) return null;
+  return Number(text);
+}
