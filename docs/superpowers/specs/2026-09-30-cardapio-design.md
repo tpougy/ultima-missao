@@ -24,8 +24,8 @@ a votação de data continua disponível pela navbar.
 |---|---|---|
 | `participants` (existente) | `+ menuVoter: boolean` (optional, indexed) | `undefined` = nunca respondeu (mostra opt-in); `true` = votante; `false` = só acompanha. |
 | `menuSettings` | `payingCount: number?`, `arrivalDate: string?`, `departureDate: string?` | Registro único com UUID fixo em código (`MENU_SETTINGS_ID`), gravado via `update` (upsert). |
-| `menuSessions` | `date: string?` (ISO, indexed), `name: string`, `order: number` (indexed) | `date` ausente ⇒ sessão do card **Geral**. Dias não são entidade: derivam do intervalo chegada→saída. |
-| `menuItems` | `name: string`, `price: number`, `quantity: string?`, `description: string?`, `order: number` (indexed) | `price` = custo **total** do item. `quantity` é só descritiva. `order` = `Date.now()` na criação. |
+| `menuSessions` | `date: string?` (ISO, indexed), `name: string`, `order: number` (indexed) | `order` define a posição dentro do card (nova sessão = maior `order` do card + 1). `date` ausente ⇒ sessão do card **Geral**. Dias não são entidade: derivam do intervalo chegada→saída. |
+| `menuItems` | `name: string`, `price: number`, `quantity: string?`, `description: string?`, `order: number` (indexed) | `price` = custo **total** do item. `quantity` é só descritiva. `order` define a posição dentro da sessão (novo item = maior `order` da sessão + 1). |
 
 Links:
 
@@ -78,8 +78,8 @@ Perms: abertas (`"true"`) para as novas entidades, igual às existentes.
   link "Sair da votação" (com `confirm()`).
 - Cards grandes: **Geral** primeiro (só se tiver sessões), depois um por dia do
   período ("SEX 12 · Dezembro"); dias sem sessões ficam ocultos.
-- Dentro do card: sessões na ordem definida; dentro da sessão, itens em ordem de
-  criação. Cada item: nome em destaque com quantidade ao lado (se houver),
+- Dentro do card: sessões na ordem definida; dentro da sessão, itens na ordem
+  definida no admin. Cada item: nome em destaque com quantidade ao lado (se houver),
   descrição abaixo (se houver, quebra de linha natural), preço à direita, placar
   `apoio/votantes`, botão (i) com nomes de quem votou.
 - Votante toca no item para alternar o voto (link/unlink). Item no cardápio
@@ -91,23 +91,30 @@ Perms: abertas (`"true"`) para as novas entidades, igual às existentes.
   Se o novo período deixar sessões **datadas** fora dele → `confirm()` e apaga
   essas sessões (cascade apaga itens). Sessões gerais nunca são afetadas.
 - Card **Geral** sempre visível no topo; depois um card por dia do período.
-- Em cada card: sessões com nome editável, ↑↓ (troca `order` com a vizinha),
-  remover (`confirm()`), formulário "+ sessão".
+- Em cada card: sessões com nome editável, ↑↓, remover (`confirm()`),
+  formulário "+ sessão".
 - Em cada sessão: itens editáveis inline (nome, preço, quantidade, descrição),
-  remover, formulário "+ item", placar `apoio/votantes` visível.
+  ↑↓, remover, formulário "+ item", placar `apoio/votantes` visível.
+- **Reordenação** (sessões no card e itens na sessão): ↑ desabilitado no
+  primeiro, ↓ no último; mover = trocar o `order` com o vizinho numa única
+  `db.transact` com dois `update`. Helper puro `swapOrder(list, index, dir)` em
+  `menu.ts` devolve os dois pares `{id, order}` a gravar. Se houver empate de
+  `order` (ex.: criação concorrente), a lista é desempatada por `id` para manter
+  a ordem estável.
 - Seção "Votantes" listando os nomes atuais.
 
 ## Testes e verificação
 
 - `bun test` para `src/lib/menu.ts`: `tripDays` (inclusivo, inválido, virada de
   mês), limiar 50% (1/2, 1/3, 2/4, 0 votantes), likes de não-votantes ignorados,
-  total só com itens no cardápio e só sessões visíveis.
+  total só com itens no cardápio e só sessões visíveis, `swapOrder`
+  (meio, extremos, empates).
 - `bun run check`, `bun run build`, `bun run instant:push` (schema + perms).
 - Teste manual ponta a ponta no navegador: Admin configura → opt-in → votos →
   entrada de novo votante muda denominador → itens entram/saem → totais mudam.
 
 ## Fora de escopo
 
-- Reordenar itens dentro de sessão (ordem de criação basta).
-- Mover sessão entre dias (apagar e recriar).
+- Mover sessão entre dias ou item entre sessões (apagar e recriar).
+- Drag-and-drop (setas são mais confiáveis no celular e não exigem dependência).
 - Custos por pessoa armazenados no banco.
