@@ -6,6 +6,7 @@
   import DatesClosed from "./lib/components/DatesClosed.svelte";
   import MenuView from "./lib/components/MenuView.svelte";
   import MenuAdmin from "./lib/components/MenuAdmin.svelte";
+  import DrinksView from "./lib/components/DrinksView.svelte";
   import { router, navigate } from "./lib/router.svelte";
   import { db } from "./lib/db";
   import {
@@ -66,7 +67,11 @@
   {#if router.section === "data"}
     <DatesClosed />
   {:else if router.section === "bebidas"}
-    <p class="loading">Em breve.</p>
+    <DrinksView
+      participantId={participant.id}
+      admin={router.admin}
+      onClose={() => navigate("bebidas")}
+    />
   {:else if router.admin}
     <MenuAdmin
       onClose={() => navigate("cardapio")}

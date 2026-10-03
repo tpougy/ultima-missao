@@ -182,6 +182,9 @@
     width: 100%;
     font: inherit;
     font-size: 0.875rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0.7rem;
     resize: vertical;
   }
 
