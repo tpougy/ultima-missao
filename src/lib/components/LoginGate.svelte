@@ -30,8 +30,12 @@
       email = trimmed;
       code = "";
       step = "code";
-    } catch {
-      error = "Não foi possível enviar o código. Confira o e-mail e tente de novo.";
+    } catch (err) {
+      // InstantDB explains rejections (undeliverable address, rate limit).
+      const detail = (err as { body?: { message?: string } })?.body?.message;
+      error =
+        "Não foi possível enviar o código. Confira o e-mail e tente de novo." +
+        (detail ? ` (${detail})` : "");
     } finally {
       busy = false;
     }
