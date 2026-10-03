@@ -1,10 +1,20 @@
 # Operação Última Missão — Scheduler
 
-App 100% client-side para o grupo organizar a viagem: votar no cardápio e
-escolher o melhor final de semana. Sem backend próprio: [InstantDB](https://instantdb.com) cuida da
+App 100% client-side para o grupo organizar a viagem: votar no cardápio,
+combinar as bebidas e conferir as datas (já definidas). Sem backend próprio: [InstantDB](https://instantdb.com) cuida da
 persistência e da sincronização em tempo real entre todo mundo.
 
 Stack: Svelte 5 (runes) + Vite + TypeScript + Bun + InstantDB.
+
+## Acesso
+
+1. Senha do site (`VITE_APP_PASSWORD`), lembrada no navegador.
+2. Login por e-mail do InstantDB: a pessoa recebe um código de 6 dígitos.
+   Na tela de login, "Qual e-mail eu usei?" lista os e-mails já cadastrados.
+3. No primeiro login, escolhe um apelido (único), que é o nome mostrado nos
+   votos, grupos e comentários.
+
+"Sair" encerra a sessão do InstantDB, mas mantém a senha do site.
 
 ## Páginas
 
@@ -16,9 +26,17 @@ Rotas via hash (funciona em hospedagem estática sem rewrites):
   pagantes) e o total.
 - `#/cardapio/admin` — pagantes, período da viagem, sessões (por dia ou no
   card "Geral") e itens.
-- `#/data` / `#/data/admin` — votação do final de semana.
+- `#/bebidas` — qualquer pessoa sugere uma bebida e entra (ou sai) do grupo
+  das bebidas dos outros, para dimensionar quem bebe o quê.
+- `#/bebidas/admin` — editar nome e descrição ou remover bebidas.
+- `#/data` — votação encerrada; mostra as datas escolhidas (31/out, 1 e
+  2/nov de 2026).
 
-As regras do cardápio ficam em `src/lib/menu.ts` (funções puras) e têm testes:
+Bebidas e sessões do cardápio têm comentários. Cada um apaga os próprios, e o
+admin apaga qualquer um.
+
+As regras ficam em funções puras (`src/lib/menu.ts`, `drinks.ts` e
+`comments.ts`) e têm testes:
 
 ```bash
 bun test tests/
@@ -39,7 +57,7 @@ Veja `.env.example`. Copie para `.env` e preencha:
   cliente).
 - `VITE_APP_PASSWORD` — senha de entrada do app (só evita bots/curiosos, não
   é segurança real).
-- `VITE_ADMIN_PASSWORD` — senha das áreas de admin (cardápio e datas).
+- `VITE_ADMIN_PASSWORD` — senha das áreas de admin (cardápio e bebidas).
 - `INSTANT_APP_ADMIN_TOKEN` — usado só pelo `instant-cli` (schema/perms), não
   entra no bundle do cliente.
 
