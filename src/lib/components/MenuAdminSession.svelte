@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CommentThread from "./CommentThread.svelte";
   import {
     formatBRL,
     nextOrder,
@@ -29,6 +30,8 @@
     /** Collapsed sessions show only their header and a one-line summary. */
     collapsed: boolean;
     onToggleCollapse: () => void;
+    /** The admin's own participant, for writing comments. */
+    participantId: string;
   }
 
   let {
@@ -39,6 +42,7 @@
     onMove,
     collapsed,
     onToggleCollapse,
+    participantId,
   }: Props = $props();
 
   const session = $derived(view.session);
@@ -311,6 +315,11 @@
         <p class="error">{addError}</p>
       {/if}
     </form>
+    <CommentThread
+      parent={{ kind: "menuSession", id: session.id }}
+      {participantId}
+      admin
+    />
   {/if}
 </div>
 

@@ -21,9 +21,10 @@
 
   interface Props {
     onClose: () => void;
+    participantId: string;
   }
 
-  let { onClose }: Props = $props();
+  let { onClose, participantId }: Props = $props();
 
   const query = useMenuQuery();
   const menu = $derived(readMenu(query.data));
@@ -220,6 +221,7 @@
             onMove={(dir) => moveSession(card, i, dir)}
             collapsed={collapsed.has(view.session.id)}
             onToggleCollapse={() => toggleCollapsed(view.session.id)}
+            {participantId}
           />
         {/each}
 

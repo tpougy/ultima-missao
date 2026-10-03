@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CommentThread from "./CommentThread.svelte";
   import MenuCardHeader from "./MenuCardHeader.svelte";
   import MenuItemRow from "./MenuItemRow.svelte";
   import { formatBRL, perPerson, sessionProgress } from "../menu";
@@ -254,6 +255,10 @@
                   {/each}
                 </ul>
               {/if}
+              <CommentThread
+                parent={{ kind: "menuSession", id: view.session.id }}
+                {participantId}
+              />
             </div>
           {/each}
         </section>

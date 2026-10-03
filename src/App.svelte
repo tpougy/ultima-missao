@@ -68,7 +68,10 @@
   {:else if router.section === "bebidas"}
     <p class="loading">Em breve.</p>
   {:else if router.admin}
-    <MenuAdmin onClose={() => navigate("cardapio")} />
+    <MenuAdmin
+      onClose={() => navigate("cardapio")}
+      participantId={participant.id}
+    />
   {:else}
     <MenuView participantId={participant.id} />
   {/if}
