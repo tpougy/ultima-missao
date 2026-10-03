@@ -8,6 +8,7 @@ import {
   parsePrice,
   perPerson,
   reorder,
+  sessionProgress,
   sortByOrder,
   tripDays,
   MAX_TRIP_DAYS,
@@ -325,6 +326,30 @@ describe("required items", () => {
     });
     expect(state.cards[0].sessions[0].items[0].support).toBe(1);
     expect(state.total).toBe(50); // 1/2
+  });
+});
+
+describe("sessionProgress", () => {
+  const days = { arrival: "2026-12-11", departure: "2026-12-12" };
+  const view = (items: MenuItemData[]) =>
+    buildMenu({ sessions: [session("s", null, items)], participants: [ana, bia], ...days })
+      .cards[0].sessions[0];
+
+  test("counts votable items and the ones this person voted for", () => {
+    const v = view([item("a", 1, [ana]), item("b", 1, [bia]), item("c", 1, [ana, bia])]);
+    expect(sessionProgress(v, "p-ana")).toEqual({ voted: 2, votable: 3 });
+  });
+
+  test("required items are not votable and don't count", () => {
+    const v = view([
+      { ...item("carvao", 1, [ana]), required: true },
+      item("picanha", 1, []),
+    ]);
+    expect(sessionProgress(v, "p-ana")).toEqual({ voted: 0, votable: 1 });
+  });
+
+  test("empty session", () => {
+    expect(sessionProgress(view([]), "p-ana")).toEqual({ voted: 0, votable: 0 });
   });
 });
 

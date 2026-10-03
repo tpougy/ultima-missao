@@ -174,6 +174,21 @@ export function buildMenu(input: {
   return { days, cards, voters, total };
 }
 
+/**
+ * How far a person got in a session: votable items (required ones are not
+ * up for voting) and how many of those they voted for.
+ */
+export function sessionProgress(
+  view: MenuSessionView,
+  participantId: string,
+): { voted: number; votable: number } {
+  const votable = view.items.filter((s) => !s.item.required);
+  const voted = votable.filter((s) =>
+    s.item.likedBy.some((p) => p.id === participantId),
+  ).length;
+  return { voted, votable: votable.length };
+}
+
 /** Per-person cost, computed only for display; null when there are no payers. */
 export function perPerson(
   total: number,
