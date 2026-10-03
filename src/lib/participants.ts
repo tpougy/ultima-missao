@@ -4,44 +4,32 @@ import type { AppSchema } from "../../instant.schema";
 
 export type Participant = InstaQLEntity<AppSchema, "participants">;
 
-const STORAGE_KEY = "um_participant_id";
-
-export function getStoredParticipantId(): string | null {
-  return localStorage.getItem(STORAGE_KEY);
-}
-
-export function setStoredParticipantId(participantId: string): void {
-  localStorage.setItem(STORAGE_KEY, participantId);
-}
-
-export function clearStoredParticipantId(): void {
-  localStorage.removeItem(STORAGE_KEY);
-}
-
-export class NameTakenError extends Error {}
+export class NicknameTakenError extends Error {}
 
 /**
- * Creates a new participant. Names double as cross-device identity (see
- * IdentityGate.svelte), so they must be unique — checked client-side first
+ * Creates the participant for a freshly logged-in user and links it to
+ * their $users row. Nicknames must be unique — checked client-side first
  * for a fast error, then enforced for real by the schema's unique
- * constraint in case two people submit the same name at once.
+ * constraint in case two people submit the same nickname at once.
  */
-export async function createParticipant(name: string): Promise<Participant> {
-  const trimmed = name.trim();
+export async function createParticipantForUser(
+  userId: string,
+  nickname: string,
+): Promise<Participant> {
+  const name = nickname.trim();
+  const taken = () => new NicknameTakenError(`O apelido "${name}" já está em uso.`);
   const { data } = await db.queryOnce({
-    participants: { $: { where: { name: trimmed } } },
+    participants: { $: { where: { name } } },
   });
-  if (data.participants.length > 0) {
-    throw new NameTakenError(`O nome "${trimmed}" já está em uso.`);
-  }
+  if (data.participants.length > 0) throw taken();
 
   const participantId = id();
   try {
     await db.transact(
-      db.tx.participants[participantId].update({ name: trimmed }),
+      db.tx.participants[participantId].update({ name }).link({ user: userId }),
     );
   } catch {
-    throw new NameTakenError(`O nome "${trimmed}" já está em uso.`);
+    throw taken();
   }
-  return { id: participantId, name: trimmed };
+  return { id: participantId, name };
 }
