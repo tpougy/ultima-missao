@@ -41,10 +41,14 @@
       </span>
     {/if}
     <span class="body">
-      <span class="name-line">
-        <span class="name">{item.name}</span>
+      <span class="name">{item.name}</span>
+      <!-- The price is the item's total cost; tying it to the quantity (or
+           saying "no total") keeps it from being read as a unit price. -->
+      <span class="price-line">
         {#if item.quantity}
-          <span class="qty">{item.quantity}</span>
+          {item.quantity} por <strong>{formatBRL(item.price)}</strong>
+        {:else}
+          <strong>{formatBRL(item.price)}</strong> no total
         {/if}
       </span>
       {#if item.description}
@@ -52,7 +56,6 @@
       {/if}
     </span>
     <span class="side">
-      <span class="price">{formatBRL(item.price)}</span>
       {#if item.required}
         <span class="score in-menu">Obrigatório</span>
       {:else}
@@ -150,24 +153,19 @@
     gap: 0.2rem;
   }
 
-  .name-line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.15rem 0.45rem;
-  }
-
   .name {
     font-weight: 600;
     font-size: 0.95rem;
   }
 
-  .qty {
-    font-size: 0.75rem;
+  .price-line {
+    font-size: 0.82rem;
     color: var(--color-muted-strong);
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 999px;
-    padding: 0.05rem 0.45rem;
+  }
+
+  .price-line strong {
+    color: var(--color-text);
+    white-space: nowrap;
   }
 
   .desc {
@@ -180,16 +178,11 @@
 
   .side {
     flex: none;
+    align-self: center;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.25rem;
-  }
-
-  .price {
-    font-weight: 600;
-    font-size: 0.9rem;
-    white-space: nowrap;
   }
 
   .score {
