@@ -3,13 +3,14 @@
 
   interface Props {
     participantName: string;
-    onChangeName: () => void;
+    onSignOut: () => void;
   }
 
-  let { participantName, onChangeName }: Props = $props();
+  let { participantName, onSignOut }: Props = $props();
 
   const tabs: { section: Section; label: string }[] = [
     { section: "cardapio", label: "Cardápio" },
+    { section: "bebidas", label: "Bebidas" },
     { section: "data", label: "Data" },
   ];
 </script>
@@ -18,11 +19,11 @@
   <div class="topbar">
     <div class="who">
       Olá, <strong>{participantName}</strong>
-      <button type="button" class="link" onclick={onChangeName}
-        >Trocar usuário</button
-      >
+      <button type="button" class="link" onclick={onSignOut}>Sair</button>
     </div>
-    <a class="link" href={routeHref(router.section, true)}>Admin</a>
+    {#if router.section !== "data"}
+      <a class="link" href={routeHref(router.section, true)}>Admin</a>
+    {/if}
   </div>
 
   <nav class="tabs">

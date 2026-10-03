@@ -1,8 +1,7 @@
 <script lang="ts">
   import PasswordGate from "./lib/components/PasswordGate.svelte";
   import IdentityGate from "./lib/components/IdentityGate.svelte";
-  import MainView from "./lib/components/MainView.svelte";
-  import AdminPanel from "./lib/components/AdminPanel.svelte";
+  import DatesClosed from "./lib/components/DatesClosed.svelte";
   import NavBar from "./lib/components/NavBar.svelte";
   import MenuView from "./lib/components/MenuView.svelte";
   import MenuAdmin from "./lib/components/MenuAdmin.svelte";
@@ -67,7 +66,7 @@
   <p class="loading">Carregando...</p>
 {:else if !participant}
   <IdentityGate onIdentified={handleIdentified} />
-{:else if router.admin && !adminUnlocked}
+{:else if router.admin && router.section !== "data" && !adminUnlocked}
   <PasswordGate
     title="Área do admin"
     subtitle="Digite a senha de administrador"
@@ -76,13 +75,11 @@
     onCancel={() => navigate(router.section)}
   />
 {:else}
-  <NavBar participantName={participant.name} onChangeName={handleChangeUser} />
+  <NavBar participantName={participant.name} onSignOut={handleChangeUser} />
   {#if router.section === "data"}
-    {#if router.admin}
-      <AdminPanel onClose={() => navigate("data")} />
-    {:else}
-      <MainView participantId={participant.id} />
-    {/if}
+    <DatesClosed />
+  {:else if router.section === "bebidas"}
+    <p class="loading">Em breve.</p>
   {:else if router.admin}
     <MenuAdmin onClose={() => navigate("cardapio")} />
   {:else}

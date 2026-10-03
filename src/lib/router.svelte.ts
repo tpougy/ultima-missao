@@ -1,10 +1,12 @@
 /**
- * Minimal hash router: #/cardapio (default), #/cardapio/admin, #/data,
- * #/data/admin. Hash URLs need no server rewrites on Cloudflare Pages and
+ * Minimal hash router: #/cardapio (default), #/cardapio/admin, #/bebidas,
+ * #/bebidas/admin, #/data (closed date voting). Hash URLs need no server rewrites on Cloudflare Pages and
  * keep the back button and shareable links working.
  */
 
-export type Section = "cardapio" | "data";
+export type Section = "cardapio" | "bebidas" | "data";
+
+const SECTIONS: Section[] = ["cardapio", "bebidas", "data"];
 
 interface Route {
   section: Section;
@@ -14,7 +16,9 @@ interface Route {
 function parse(hash: string): Route {
   const [section, sub] = hash.replace(/^#\/?/, "").split("/");
   return {
-    section: section === "data" ? "data" : "cardapio",
+    section: SECTIONS.includes(section as Section)
+      ? (section as Section)
+      : "cardapio",
     admin: sub === "admin",
   };
 }
