@@ -32,6 +32,9 @@ const _schema = i.schema({
       // The nickname chosen on first login (see NicknameGate.svelte).
       // Identity itself comes from the linked $users row (email login).
       name: i.string().unique().indexed(),
+      // nicknameKey(name): case/accent-insensitive uniqueness (nickname.ts).
+      // Optional only because pre-login rows never had it.
+      nameKey: i.string().unique().indexed().optional(),
       // Menu voting opt-in: undefined = never answered (show the opt-in
       // screen), true = counts as a voter, false = just watching. Leaving
       // keeps their likes stored but ignored (see menu.ts).
