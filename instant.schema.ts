@@ -29,9 +29,8 @@ const _schema = i.schema({
       arrivalType: i.string(),
     }),
     participants: i.entity({
-      // The person's chosen display name doubles as their cross-device
-      // identity: unique so the same name can be picked up on another
-      // device to control the same votes (see participants.ts).
+      // The nickname chosen on first login (see NicknameGate.svelte).
+      // Identity itself comes from the linked $users row (email login).
       name: i.string().unique().indexed(),
       // Menu voting opt-in: undefined = never answered (show the opt-in
       // screen), true = counts as a voter, false = just watching. Leaving
@@ -62,6 +61,18 @@ const _schema = i.schema({
       // Always bought regardless of votes (e.g. charcoal); not votable.
       required: i.boolean().optional(),
       order: i.number().indexed(),
+    }),
+    // Drinks page: anyone suggests a drink, others join its "group" so we
+    // can size who drinks what. No sessions, no voting threshold.
+    drinks: i.entity({
+      name: i.string(),
+      description: i.string().optional(),
+      createdAt: i.number().indexed(),
+    }),
+    // A comment belongs to exactly one parent: a drink or a menu session.
+    comments: i.entity({
+      text: i.string(),
+      createdAt: i.number().indexed(),
     }),
   },
   links: {
@@ -142,6 +153,84 @@ const _schema = i.schema({
         on: "participants",
         has: "many",
         label: "likedMenuItems",
+      },
+    },
+    // Email login: each participant is owned by exactly one auth user.
+    participantUser: {
+      forward: {
+        on: "participants",
+        has: "one",
+        label: "user",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "$users",
+        has: "one",
+        label: "participant",
+      },
+    },
+    drinkCreator: {
+      forward: {
+        on: "drinks",
+        has: "one",
+        label: "createdBy",
+      },
+      reverse: {
+        on: "participants",
+        has: "many",
+        label: "createdDrinks",
+      },
+    },
+    // Joining a drink's group is just a link, like menu likes.
+    drinkMembers: {
+      forward: {
+        on: "drinks",
+        has: "many",
+        label: "members",
+      },
+      reverse: {
+        on: "participants",
+        has: "many",
+        label: "drinks",
+      },
+    },
+    commentAuthor: {
+      forward: {
+        on: "comments",
+        has: "one",
+        label: "author",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "participants",
+        has: "many",
+        label: "comments",
+      },
+    },
+    drinkComments: {
+      forward: {
+        on: "comments",
+        has: "one",
+        label: "drink",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "drinks",
+        has: "many",
+        label: "comments",
+      },
+    },
+    menuSessionComments: {
+      forward: {
+        on: "comments",
+        has: "one",
+        label: "menuSession",
+        onDelete: "cascade",
+      },
+      reverse: {
+        on: "menuSessions",
+        has: "many",
+        label: "comments",
       },
     },
   },

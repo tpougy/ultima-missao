@@ -22,8 +22,9 @@ Data: 2026-10-03 · Status: aprovado por delegação (o usuário pediu execuçã
    - Itens têm comentários.
 4. **Comentários nas sessões do cardápio** (não nos itens).
 
-Os dados atuais são de teste e não importam. Mesmo assim, a mudança é
-aditiva e não apaga nada.
+Dos dados atuais, só os **itens e sessões do cardápio** (e as configurações
+do cardápio) importam. Votos e participantes antigos são de teste e podem
+sair.
 
 ## Decisões (tomadas por mim, com o motivo)
 
@@ -34,12 +35,13 @@ aditiva e não apaga nada.
   votos e curtidas existentes continuam funcionando sem migração.
 - **Apelido = `participants.name`**, que já é único.
 - **Primeiro login (usuário autenticado sem participant):** a tela "Escolha
-  seu apelido" oferece duas coisas:
-  - criar um novo apelido;
-  - ou "Já participei antes como…", que lista os participants ainda sem
-    usuário. Assim as pessoas podem reivindicar votos antigos.
-
-  É barato e evita perder as curtidas que já existem.
+  seu apelido" cria o participant e o liga ao `$users`. Não há como
+  reivindicar participantes antigos, porque os votos não importam.
+- **Limpeza no deploy:** um script admin apaga os participants sem `user`
+  (os antigos, de teste). Isso libera os apelidos, e as curtidas e votos de
+  datas deles vão junto. Itens, sessões e configurações do cardápio não estão
+  ligados a participants por cascade e ficam intactos. O script confere as
+  contagens antes e depois.
 - **"Trocar usuário" vira "Sair"**, que faz `db.auth.signOut()`. O
   `um_participant_id` do localStorage deixa de ser usado. O
   `IdentityGate` (escolha de nome sem login) é removido.
@@ -122,7 +124,7 @@ não houver participant ligado) → (admin: `PasswordGate`) → `NavBar` + pági
   obtido via admin SDK, com `auth.generateMagicCode`. Fluxos cobertos:
   - senha;
   - login;
-  - escolha de apelido (novo e reivindicando um existente);
+  - escolha de apelido (incluindo apelido em uso);
   - lista de e-mails;
   - cardápio continua votando;
   - comentário em sessão;
@@ -132,6 +134,10 @@ não houver participant ligado) → (admin: `PasswordGate`) → `NavBar` + pági
   - sair.
 
 ## Deploy
-Antes do merge, rodar `bun run instant:push` (schema + perms) na produção.
-É aditivo: o cliente antigo continua funcionando com o schema novo. Depois,
-merge e push na main.
+Antes do merge, em produção:
+1. Rodar `bun run instant:push` (schema + perms). É aditivo: o cliente
+   antigo continua funcionando com o schema novo.
+2. Rodar o script de limpeza de participants antigos e conferir que as
+   contagens de itens e sessões do cardápio não mudaram.
+
+Depois, merge e push na main.

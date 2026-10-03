@@ -2,11 +2,25 @@
 
 import type { InstantRules } from "@instantdb/admin";
 
-// There's no real InstantDB auth in this app (see CLAUDE.md for why): access
-// is gated by a plain frontend password instead. Rules stay open so any
-// client holding the appId can read/write, matching the "no strong security
-// needed" requirement from QUICKSTART.md.
+// The site is gated by a frontend password plus InstantDB email login. The
+// login organizes who is who; strong security is not a goal (QUICKSTART.md),
+// so app rules stay open. $users is viewable so the login screen can list
+// the emails already used (a ~10-person group, accepted by the owner).
+const open = {
+  allow: {
+    view: "true",
+    create: "true",
+    update: "true",
+    delete: "true",
+  },
+};
+
 const rules = {
+  $users: {
+    allow: {
+      view: "true",
+    },
+  },
   weekends: {
     allow: {
       view: "true",
@@ -55,6 +69,8 @@ const rules = {
       delete: "true",
     },
   },
+  drinks: open,
+  comments: open,
 } satisfies InstantRules;
 
 export default rules;
