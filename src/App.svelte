@@ -48,6 +48,13 @@
   <LoginGate />
 {:else if participantQuery.isLoading}
   <p class="loading">Carregando...</p>
+{:else if participantQuery.error}
+  <!-- Not "no participant": sending them to NicknameGate would fail with a
+       misleading "nickname taken" error. -->
+  <div class="loading">
+    <p>Não foi possível carregar seu perfil.</p>
+    <button type="button" onclick={() => location.reload()}>Tentar de novo</button>
+  </div>
 {:else if !participant}
   <NicknameGate
     userId={auth.user.id}
@@ -86,6 +93,8 @@
   .loading {
     min-height: 100dvh;
     display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     align-items: center;
     justify-content: center;
     color: var(--color-muted);
