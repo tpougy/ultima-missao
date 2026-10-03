@@ -277,6 +277,57 @@ describe("buildMenu", () => {
   });
 });
 
+describe("required items", () => {
+  const days = { arrival: "2026-12-11", departure: "2026-12-12" };
+  const carvao = (likedBy: MenuPerson[] = []): MenuItemData => ({
+    ...item("carvao", 50, likedBy),
+    required: true,
+  });
+
+  test("are in the menu even without any voters", () => {
+    const state = buildMenu({
+      sessions: [session("churras", null, [carvao()])],
+      participants: [caio, davi],
+      ...days,
+    });
+    expect(state.cards[0].sessions[0].items[0].inMenu).toBe(true);
+    expect(state.total).toBe(50);
+  });
+
+  test("are in the menu without votes when there are voters", () => {
+    const state = buildMenu({
+      sessions: [session("churras", null, [carvao(), item("picanha", 100, [])])],
+      participants: [ana, bia],
+      ...days,
+    });
+    expect(state.total).toBe(50);
+  });
+
+  test("ignore stored likes (they are not up for voting)", () => {
+    const state = buildMenu({
+      sessions: [session("churras", null, [carvao([ana])])],
+      participants: [ana, bia],
+      ...days,
+    });
+    const scored = state.cards[0].sessions[0].items[0];
+    expect(scored.support).toBe(0);
+    expect(scored.likers).toEqual([]);
+    expect(state.total).toBe(50);
+  });
+
+  test("required: false behaves like a normal votable item", () => {
+    const state = buildMenu({
+      sessions: [
+        session("churras", null, [{ ...item("carvao", 50, [ana]), required: false }]),
+      ],
+      participants: [ana, bia],
+      ...days,
+    });
+    expect(state.cards[0].sessions[0].items[0].support).toBe(1);
+    expect(state.total).toBe(50); // 1/2
+  });
+});
+
 describe("perPerson / formatBRL", () => {
   test("divides the total by the paying count", () => {
     expect(perPerson(100, 10)).toBe(10);

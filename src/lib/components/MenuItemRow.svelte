@@ -19,17 +19,19 @@
   let infoOpen = $state(false);
 
   const item = $derived(scored.item);
+  /** Required items are always in the menu and can't be voted on. */
+  const votable = $derived(canVote && !item.required);
 </script>
 
 <li class="item" class:in-menu={scored.inMenu}>
   <button
     type="button"
     class="item-main"
-    disabled={!canVote}
-    aria-pressed={canVote ? liked : undefined}
+    disabled={!votable}
+    aria-pressed={votable ? liked : undefined}
     onclick={onToggle}
   >
-    {#if canVote}
+    {#if votable}
       <span class="check" class:liked>
         {#if liked}
           <CheckCircle2 size={20} />
@@ -51,38 +53,44 @@
     </span>
     <span class="side">
       <span class="price">{formatBRL(item.price)}</span>
-      <span class="score" class:in-menu={scored.inMenu}
-        >{scored.support}/{voterCount}</span
-      >
+      {#if item.required}
+        <span class="score in-menu">Obrigatório</span>
+      {:else}
+        <span class="score" class:in-menu={scored.inMenu}
+          >{scored.support}/{voterCount}</span
+        >
+      {/if}
     </span>
   </button>
 
-  <div class="info-wrap">
-    <button
-      type="button"
-      class="info-btn"
-      aria-label="Ver quem votou"
-      onclick={() => (infoOpen = !infoOpen)}
-    >
-      <Info size={15} />
-    </button>
-    {#if infoOpen}
+  {#if !item.required}
+    <div class="info-wrap">
       <button
         type="button"
-        class="info-backdrop"
-        aria-label="Fechar"
-        onclick={() => (infoOpen = false)}
-      ></button>
-      <div class="info-popover">
-        <p class="info-title">
-          {scored.inMenu ? "No cardápio" : "Fora do cardápio"} ({scored.support}/{voterCount})
-        </p>
-        <p class="info-names">
-          {scored.likers.map((p) => p.name).join(", ") || "Ninguém votou ainda"}
-        </p>
-      </div>
-    {/if}
-  </div>
+        class="info-btn"
+        aria-label="Ver quem votou"
+        onclick={() => (infoOpen = !infoOpen)}
+      >
+        <Info size={15} />
+      </button>
+      {#if infoOpen}
+        <button
+          type="button"
+          class="info-backdrop"
+          aria-label="Fechar"
+          onclick={() => (infoOpen = false)}
+        ></button>
+        <div class="info-popover">
+          <p class="info-title">
+            {scored.inMenu ? "No cardápio" : "Fora do cardápio"} ({scored.support}/{voterCount})
+          </p>
+          <p class="info-names">
+            {scored.likers.map((p) => p.name).join(", ") || "Ninguém votou ainda"}
+          </p>
+        </div>
+      {/if}
+    </div>
+  {/if}
 </li>
 
 <style>
@@ -111,6 +119,11 @@
     text-align: left;
     padding: 0.7rem 0.25rem 0.7rem 0.75rem;
     border-radius: 0.75rem;
+  }
+
+  /* No (i) button next to it (required items): keep the right padding. */
+  .item-main:last-child {
+    padding-right: 0.75rem;
   }
 
   .item-main:disabled {

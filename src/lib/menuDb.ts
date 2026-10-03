@@ -110,6 +110,7 @@ export interface MenuItemFields {
   price: number;
   quantity: string;
   description: string;
+  required: boolean;
 }
 
 export function addItem(

@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    formatBRL,
     nextOrder,
     parsePrice,
     reorder,
@@ -17,6 +18,7 @@
   import ChevronUp from "lucide-svelte/icons/chevron-up";
   import ChevronDown from "lucide-svelte/icons/chevron-down";
   import Trash2 from "lucide-svelte/icons/trash-2";
+  import ChevronRight from "lucide-svelte/icons/chevron-right";
 
   interface Props {
     view: MenuSessionView;
@@ -24,17 +26,33 @@
     count: number;
     voterCount: number;
     onMove: (dir: -1 | 1) => void;
+    /** Collapsed sessions show only their header and a one-line summary. */
+    collapsed: boolean;
+    onToggleCollapse: () => void;
   }
 
-  let { view, index, count, voterCount, onMove }: Props = $props();
+  let {
+    view,
+    index,
+    count,
+    voterCount,
+    onMove,
+    collapsed,
+    onToggleCollapse,
+  }: Props = $props();
 
   const session = $derived(view.session);
   const sortedItems = $derived(view.items.map((s) => s.item));
+  const inMenuItems = $derived(view.items.filter((s) => s.inMenu));
+  const inMenuTotal = $derived(
+    inMenuItems.reduce((sum, s) => sum + s.item.price, 0),
+  );
 
   let newName = $state("");
   let newQuantity = $state("");
   let newPrice = $state("");
   let newDescription = $state("");
+  let newRequired = $state(false);
   let addError = $state<string | null>(null);
 
   function priceText(price: number): string {
@@ -115,6 +133,7 @@
         price,
         quantity: newQuantity.trim(),
         description: newDescription.trim(),
+        required: newRequired,
       },
       nextOrder(sortedItems),
     );
@@ -122,12 +141,21 @@
     newQuantity = "";
     newPrice = "";
     newDescription = "";
+    newRequired = false;
     addError = null;
   }
 </script>
 
 <div class="session">
   <div class="session-head">
+    <button
+      type="button"
+      class="icon-btn collapse-btn"
+      class:collapsed
+      aria-label={collapsed ? "Expandir sessão" : "Recolher sessão"}
+      aria-expanded={!collapsed}
+      onclick={onToggleCollapse}><ChevronRight size={18} /></button
+    >
     <input
       class="session-name"
       type="text"
@@ -157,111 +185,133 @@
     >
   </div>
 
-  {#if view.items.length > 0}
-    <ul class="items">
-      {#each view.items as scored, i (scored.item.id)}
-        {@const item = scored.item}
-        <li class="item" class:in-menu={scored.inMenu}>
-          <div class="row">
-            <input
-              class="grow"
-              type="text"
-              value={item.name}
-              aria-label="Nome do item"
-              onchange={(e) => editName(item, e.currentTarget)}
-            />
-            <input
-              class="qty"
-              type="text"
-              value={item.quantity ?? ""}
-              placeholder="Qtd."
-              aria-label="Quantidade"
-              onchange={(e) =>
-                editText(item, "quantity", e.currentTarget.value)}
-            />
-          </div>
-          <div class="row">
-            <label class="price">
-              <span>R$</span>
+  {#if collapsed}
+    <p class="summary">
+      {view.items.length}
+      {view.items.length === 1 ? "item" : "itens"} · {inMenuItems.length} no
+      cardápio · {formatBRL(inMenuTotal)}
+    </p>
+  {:else}
+    {#if view.items.length > 0}
+      <ul class="items">
+        {#each view.items as scored, i (scored.item.id)}
+          {@const item = scored.item}
+          <li class="item" class:in-menu={scored.inMenu}>
+            <div class="row">
               <input
+                class="grow"
                 type="text"
-                inputmode="decimal"
-                value={priceText(item.price)}
-                aria-label="Preço total"
-                onchange={(e) => editPrice(item, e.currentTarget)}
+                value={item.name}
+                aria-label="Nome do item"
+                onchange={(e) => editName(item, e.currentTarget)}
               />
-            </label>
-          </div>
-          <textarea
-            rows="2"
-            value={item.description ?? ""}
-            placeholder="Descrição (opcional)"
-            aria-label="Descrição"
-            onchange={(e) =>
-              editText(item, "description", e.currentTarget.value)}
-          ></textarea>
-          <div class="row foot">
-            <span class="score" class:in-menu={scored.inMenu}
-              >{scored.support}/{voterCount}
-              {scored.inMenu ? "· no cardápio" : ""}</span
-            >
-            <button
-              type="button"
-              class="icon-btn"
-              aria-label="Subir item"
-              disabled={i === 0}
-              onclick={() => moveItem(i, -1)}><ChevronUp size={18} /></button
-            >
-            <button
-              type="button"
-              class="icon-btn"
-              aria-label="Descer item"
-              disabled={i === view.items.length - 1}
-              onclick={() => moveItem(i, 1)}><ChevronDown size={18} /></button
-            >
-            <button
-              type="button"
-              class="icon-btn danger"
-              aria-label="Remover item"
-              onclick={() => removeItem(item)}><Trash2 size={17} /></button
-            >
-          </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
-  <form class="add-item" onsubmit={submitItem}>
-    <div class="row">
-      <input
-        class="grow"
-        type="text"
-        placeholder="Novo item (ex.: Picanha)"
-        bind:value={newName}
-      />
-      <input class="qty" type="text" placeholder="Qtd." bind:value={newQuantity} />
-    </div>
-    <div class="row">
-      <label class="price">
-        <span>R$</span>
-        <input
-          type="text"
-          inputmode="decimal"
-          placeholder="Preço total"
-          bind:value={newPrice}
-        />
-      </label>
-      <button type="submit" class="add-btn">Adicionar item</button>
-    </div>
-    <textarea
-      rows="2"
-      placeholder="Descrição (opcional)"
-      bind:value={newDescription}
-    ></textarea>
-    {#if addError}
-      <p class="error">{addError}</p>
+              <input
+                class="qty"
+                type="text"
+                value={item.quantity ?? ""}
+                placeholder="Qtd."
+                aria-label="Quantidade"
+                onchange={(e) =>
+                  editText(item, "quantity", e.currentTarget.value)}
+              />
+            </div>
+            <div class="row">
+              <label class="price">
+                <span>R$</span>
+                <input
+                  type="text"
+                  inputmode="decimal"
+                  value={priceText(item.price)}
+                  aria-label="Preço total"
+                  onchange={(e) => editPrice(item, e.currentTarget)}
+                />
+              </label>
+              <label class="required-toggle">
+                <input
+                  type="checkbox"
+                  checked={!!item.required}
+                  onchange={(e) =>
+                    updateItem(item.id, { required: e.currentTarget.checked })}
+                />
+                Obrigatório
+              </label>
+            </div>
+            <textarea
+              rows="2"
+              value={item.description ?? ""}
+              placeholder="Descrição (opcional)"
+              aria-label="Descrição"
+              onchange={(e) =>
+                editText(item, "description", e.currentTarget.value)}
+            ></textarea>
+            <div class="row foot">
+              <span class="score" class:in-menu={scored.inMenu}
+                >{item.required
+                  ? "Obrigatório · no cardápio"
+                  : `${scored.support}/${voterCount}${scored.inMenu ? " · no cardápio" : ""}`}</span
+              >
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Subir item"
+                disabled={i === 0}
+                onclick={() => moveItem(i, -1)}><ChevronUp size={18} /></button
+              >
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label="Descer item"
+                disabled={i === view.items.length - 1}
+                onclick={() => moveItem(i, 1)}><ChevronDown size={18} /></button
+              >
+              <button
+                type="button"
+                class="icon-btn danger"
+                aria-label="Remover item"
+                onclick={() => removeItem(item)}><Trash2 size={17} /></button
+              >
+            </div>
+          </li>
+        {/each}
+      </ul>
     {/if}
-  </form>
+
+    <form class="add-item" onsubmit={submitItem}>
+      <div class="row">
+        <input
+          class="grow"
+          type="text"
+          placeholder="Novo item (ex.: Picanha)"
+          bind:value={newName}
+        />
+        <input class="qty" type="text" placeholder="Qtd." bind:value={newQuantity} />
+      </div>
+      <div class="row">
+        <label class="price">
+          <span>R$</span>
+          <input
+            type="text"
+            inputmode="decimal"
+            placeholder="Preço total"
+            bind:value={newPrice}
+          />
+        </label>
+        <button type="submit" class="add-btn">Adicionar item</button>
+      </div>
+      <textarea
+        rows="2"
+        placeholder="Descrição (opcional)"
+        bind:value={newDescription}
+      ></textarea>
+      <label class="required-toggle">
+        <input type="checkbox" bind:checked={newRequired} />
+        Obrigatório (entra no cardápio sem votação)
+      </label>
+      {#if addError}
+        <p class="error">{addError}</p>
+      {/if}
+    </form>
+  {/if}
 </div>
 
 <style>
@@ -278,6 +328,38 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  .collapse-btn :global(svg) {
+    transform: rotate(90deg);
+    transition: transform 0.15s ease;
+  }
+
+  .collapse-btn.collapsed :global(svg) {
+    transform: none;
+  }
+
+  .summary {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-muted-strong);
+  }
+
+  .required-toggle {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--color-muted-strong);
+    cursor: pointer;
+  }
+
+  .required-toggle input {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--color-accent);
   }
 
   .session-name {

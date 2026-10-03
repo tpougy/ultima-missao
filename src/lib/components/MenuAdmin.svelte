@@ -1,6 +1,7 @@
 <script lang="ts">
   import MenuCardHeader from "./MenuCardHeader.svelte";
   import MenuAdminSession from "./MenuAdminSession.svelte";
+  import { SvelteSet } from "svelte/reactivity";
   import {
     MAX_TRIP_DAYS,
     nextOrder,
@@ -28,6 +29,50 @@
   const menu = $derived(readMenu(query.data));
   const settings = $derived(menu.settings);
   const voterCount = $derived(menu.state.voters.length);
+
+  /**
+   * Collapsed session ids. Per-admin convenience only, so it lives in this
+   * browser's localStorage (wrapped: storage can be blocked or empty).
+   */
+  const COLLAPSED_KEY = "um_menu_admin_collapsed";
+
+  function loadCollapsed(): string[] {
+    try {
+      const parsed: unknown = JSON.parse(
+        localStorage.getItem(COLLAPSED_KEY) ?? "[]",
+      );
+      return Array.isArray(parsed)
+        ? parsed.filter((x): x is string => typeof x === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  const collapsed = new SvelteSet<string>(loadCollapsed());
+
+  $effect(() => {
+    const ids = JSON.stringify([...collapsed]);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, ids);
+    } catch {
+      // Not persisting is fine: it only resets the collapsed state.
+    }
+  });
+
+  const allSessionIds = $derived(
+    menu.state.cards.flatMap((card) => card.sessions.map((s) => s.session.id)),
+  );
+
+  function toggleCollapsed(sessionId: string) {
+    if (collapsed.has(sessionId)) collapsed.delete(sessionId);
+    else collapsed.add(sessionId);
+  }
+
+  function collapseAll() {
+    collapsed.clear();
+    for (const sessionId of allSessionIds) collapsed.add(sessionId);
+  }
 
   /** New-session name drafts, keyed by card. */
   let drafts = $state<Record<string, string>>({});
@@ -147,6 +192,17 @@
       </p>
     </section>
 
+    {#if allSessionIds.length > 0}
+      <div class="collapse-all">
+        <button type="button" class="link" onclick={collapseAll}
+          >Recolher todas as sessões</button
+        >
+        <button type="button" class="link" onclick={() => collapsed.clear()}
+          >Expandir todas</button
+        >
+      </div>
+    {/if}
+
     {#if menu.state.days.length === 0}
       <p class="empty">Defina chegada e saída para montar os dias da viagem.</p>
     {/if}
@@ -162,6 +218,8 @@
             count={card.sessions.length}
             {voterCount}
             onMove={(dir) => moveSession(card, i, dir)}
+            collapsed={collapsed.has(view.session.id)}
+            onToggleCollapse={() => toggleCollapsed(view.session.id)}
           />
         {/each}
 
@@ -245,6 +303,13 @@
     font-size: 0.75rem;
     color: var(--color-muted);
     line-height: 1.4;
+  }
+
+  .collapse-all {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-bottom: -0.5rem;
   }
 
   .day-card {

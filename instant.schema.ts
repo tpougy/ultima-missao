@@ -59,6 +59,8 @@ const _schema = i.schema({
       // Descriptive only, never used in calculations.
       quantity: i.string().optional(),
       description: i.string().optional(),
+      // Always bought regardless of votes (e.g. charcoal); not votable.
+      required: i.boolean().optional(),
       order: i.number().indexed(),
     }),
   },

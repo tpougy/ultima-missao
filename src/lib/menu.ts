@@ -23,6 +23,8 @@ export interface MenuItemData {
   price: number;
   quantity?: string | null;
   description?: string | null;
+  /** Always bought, regardless of votes; not up for voting. */
+  required?: boolean | null;
   order: number;
   likedBy: MenuPerson[];
 }
@@ -156,9 +158,13 @@ export function buildMenu(input: {
     if (!card) continue; // dated outside the current trip period
 
     const items = sortByOrder(session.items).map((item): ScoredItem => {
-      const likers = item.likedBy.filter((p) => voterIds.has(p.id));
+      // Required items skip the vote entirely: any likes stored from before
+      // they became required are ignored (and count again if unmarked).
+      const likers = item.required
+        ? []
+        : item.likedBy.filter((p) => voterIds.has(p.id));
       const support = likers.length;
-      const inMenu = isInMenu(support, voters.length);
+      const inMenu = !!item.required || isInMenu(support, voters.length);
       if (inMenu) total += item.price;
       return { item, support, inMenu, likers };
     });
